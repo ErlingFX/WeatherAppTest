@@ -42,6 +42,8 @@ final class WeatherViewController: UIViewController {
     private let loadingView = LoadingView()
     private let errorView = ErrorView()
 
+    private let gradientLayer = CAGradientLayer()
+
     private lazy var hourlyCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -66,6 +68,8 @@ final class WeatherViewController: UIViewController {
         table.rowHeight = 56
         table.separatorInset = .zero
         table.backgroundColor = .clear
+        table.layer.cornerRadius = 12
+        table.clipsToBounds = true
         return table
     }()
 
@@ -80,11 +84,24 @@ final class WeatherViewController: UIViewController {
         loadWeather()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        gradientLayer.frame = view.bounds
+    }
+
     // MARK: - Setup
 
     private func setupUI() {
-        view.backgroundColor = .systemBackground
         title = "Погода"
+
+        view.backgroundColor = UIColor(white: 0.96, alpha: 1)
+
+        gradientLayer.colors = [
+            WeatherBackgroundProvider.default.topColor.cgColor,
+            WeatherBackgroundProvider.default.bottomColor.cgColor
+        ]
+        gradientLayer.locations = [0, 1]
+        view.layer.insertSublayer(gradientLayer, at: 0)
 
         view.addSubview(scrollView)
         scrollView.addSubview(contentStackView)
@@ -197,6 +214,11 @@ extension WeatherViewController: WeatherDisplayLogic {
         loadingView.hide()
         errorView.hide()
         contentStackView.isHidden = false
+
+        let config = WeatherBackgroundProvider.background(for: viewModel.conditionCode)
+        UIView.animate(withDuration: 0.5) { [weak self] in
+            self?.gradientLayer.colors = [config.topColor.cgColor, config.bottomColor.cgColor]
+        }
 
         currentWeatherView.configure(
             city: viewModel.city,

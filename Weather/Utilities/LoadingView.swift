@@ -21,7 +21,7 @@ final class LoadingView: UIView {
     }
 
     private func setupUI() {
-        backgroundColor = .systemBackground
+        backgroundColor = .clear
         isHidden = true
 
         addSubview(activityIndicator)

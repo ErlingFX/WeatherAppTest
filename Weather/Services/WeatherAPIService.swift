@@ -23,6 +23,7 @@ struct ForecastWeatherDTO: Codable {
         struct ConditionDTO: Codable {
             let text: String
             let icon: String
+            let code: Int
         }
     }
 

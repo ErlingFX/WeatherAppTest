@@ -59,7 +59,8 @@ final class WeatherInteractor: WeatherBusinessLogic {
             city: dto.location.name,
             temperature: dto.current.temp_c,
             condition: dto.current.condition.text,
-            iconURL: makeAbsoluteURL(dto.current.condition.icon)
+            iconURL: makeAbsoluteURL(dto.current.condition.icon),
+            conditionCode: dto.current.condition.code
         )
 
         // Оставшиеся часы текущего дня + все часы следующего дня

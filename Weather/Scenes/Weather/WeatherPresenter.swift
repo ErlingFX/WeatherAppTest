@@ -52,6 +52,7 @@ final class WeatherPresenter: WeatherPresentationLogic {
             temperature: formatTemperature(response.current.temperature),
             condition: response.current.condition,
             iconURL: response.current.iconURL,
+            conditionCode: response.current.conditionCode,
             hourly: hourly,
             daily: daily
         )

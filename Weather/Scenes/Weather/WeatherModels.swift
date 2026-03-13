@@ -22,6 +22,7 @@ enum Weather {
             let temperature: String
             let condition: String
             let iconURL: String
+            let conditionCode: Int
             let hourly: [HourlyItem]
             let daily: [DailyItem]
         }
@@ -37,6 +38,7 @@ struct CurrentWeather {
     let temperature: Double
     let condition: String
     let iconURL: String
+    let conditionCode: Int
 }
 
 struct HourlyWeather {

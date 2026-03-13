@@ -37,7 +37,7 @@ final class ErrorView: UIView {
     }
 
     private func setupUI() {
-        backgroundColor = .systemBackground
+        backgroundColor = .clear
         isHidden = true
 
         addSubview(messageLabel)
