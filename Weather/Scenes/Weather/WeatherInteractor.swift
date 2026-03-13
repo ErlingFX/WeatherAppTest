@@ -3,6 +3,7 @@
 //  Weather
 //
 
+import CoreLocation
 import Foundation
 
 protocol WeatherBusinessLogic {
@@ -15,16 +16,16 @@ final class WeatherInteractor: WeatherBusinessLogic {
     var presenter: WeatherPresentationLogic?
     private let worker: WeatherWorkerProtocol
     private let locationService: LocationServiceProtocol
-
-    private static let moscowLatitude = 55.7558
-    private static let moscowLongitude = 37.6176
+    private let geocodingService: GeocodingServiceProtocol
 
     init(
         worker: WeatherWorkerProtocol = WeatherWorker(),
-        locationService: LocationServiceProtocol = LocationService()
+        locationService: LocationServiceProtocol = LocationService(),
+        geocodingService: GeocodingServiceProtocol = GeocodingService()
     ) {
         self.worker = worker
         self.locationService = locationService
+        self.geocodingService = geocodingService
     }
 
     func loadWeather(request: Weather.Load.Request) {
@@ -33,7 +34,8 @@ final class WeatherInteractor: WeatherBusinessLogic {
             let (lat, lon) = await getCoordinates()
             do {
                 let dto = try await worker.fetchWeather(latitude: lat, longitude: lon)
-                let response = buildResponse(from: dto)
+                let cityName = await resolveCityName(latitude: lat, longitude: lon, apiFallback: dto.location.name)
+                let response = buildResponse(from: dto, cityName: cityName)
                 presenter?.presentWeather(response: response)
             } catch {
                 presenter?.presentError(message: error.localizedDescription)
@@ -48,15 +50,20 @@ final class WeatherInteractor: WeatherBusinessLogic {
                 case .success(let location):
                     continuation.resume(returning: (location.coordinate.latitude, location.coordinate.longitude))
                 case .denied:
-                    continuation.resume(returning: (Self.moscowLatitude, Self.moscowLongitude))
+                    continuation.resume(returning: (LocationConstants.moscowLatitude, LocationConstants.moscowLongitude))
                 }
             }
         }
     }
 
-    private func buildResponse(from dto: ForecastWeatherDTO) -> Weather.Load.Response {
+    private func resolveCityName(latitude: Double, longitude: Double, apiFallback: String) async -> String {
+        let location = CLLocation(latitude: latitude, longitude: longitude)
+        return await geocodingService.cityName(for: location) ?? apiFallback
+    }
+
+    private func buildResponse(from dto: ForecastWeatherDTO, cityName: String) -> Weather.Load.Response {
         let current = CurrentWeather(
-            city: dto.location.name,
+            city: cityName,
             temperature: dto.current.temp_c,
             condition: dto.current.condition.text,
             iconURL: makeAbsoluteURL(dto.current.condition.icon),
